@@ -116,10 +116,6 @@ about:
     The cuSPARSELt APIs allow flexibility in the algorithm/operation selection,
     epilogue, and matrix characteristics, including memory layout,
     alignment, and data types.
-    License Agreements:- The packages are governed by the NVIDIA cuSPARSELt
-    Software License Agreement (EULA). By downloading and using the packages,
-    you accept the terms and conditions of the NVIDIA cuSPARSELt EULA -
-    https://docs.nvidia.com/cuda/cusparselt/license.html
   doc_url: https://docs.nvidia.com/cuda/cusparselt/index.html
   dev_url: https://developer.nvidia.com/cusparselt/downloads
 
