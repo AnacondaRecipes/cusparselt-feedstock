@@ -1,24 +1,22 @@
 {% set version = "0.9.0.3" %}
 {% set soversion = ".".join(version.split(".")[:4]) %}
 {% set somajor = version.split(".")[0] %}
-{% set arm_variant_type = arm_variant_type | default("sbsa") %}
-{% set cuda_compiler_version = cuda_compiler_version | default("None") %}
 
 package:
   name: cusparselt-split
   version: {{ version }}
 
 source:
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz"  # [linux and x86_64 and (cuda_compiler_version or "").startswith("13")]
-    sha256: "b3e9f6f366ca7d0701157a0ae7da664ef066b6c3ced92e9f838f387e9bf42b96"  # [linux and x86_64 and (cuda_compiler_version or "").startswith("13")]
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz"  # [linux and aarch64 and (cuda_compiler_version or "").startswith("13") and arm_variant_type == "sbsa"]
-    sha256: "e3a273cbe5ef5293ebe37c5c00446f934ef6af11058498428cbb2de50180bbc9"  # [linux and aarch64 and (cuda_compiler_version or "").startswith("13") and arm_variant_type == "sbsa"]
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip"  # [win and x86_64 and (cuda_compiler_version or "").startswith("13")]
-    sha256: "3292dc5b2ffeeaf3a9de5eaded690bbcf8115709853b12f88200851ecae8cf1c"  # [win and x86_64 and (cuda_compiler_version or "").startswith("13")]
+  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz"  # [linux and x86_64]
+    sha256: "b3e9f6f366ca7d0701157a0ae7da664ef066b6c3ced92e9f838f387e9bf42b96"  # [linux and x86_64]
+  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz"  # [linux and aarch64 and arm_variant_type == "sbsa"]
+    sha256: "e3a273cbe5ef5293ebe37c5c00446f934ef6af11058498428cbb2de50180bbc9"  # [linux and aarch64 and arm_variant_type == "sbsa"]
+  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip"  # [win and x86_64]
+    sha256: "3292dc5b2ffeeaf3a9de5eaded690bbcf8115709853b12f88200851ecae8cf1c"  # [win and x86_64]
 
 build:
   number: 0
-  skip: true  # [ppc64le or not (cuda_compiler_version or "").startswith("13")]
+  skip: true  # [osx]
   script:   # [win]
     - xcopy include %LIBRARY_INC% /E /I /Y /V  # [win]
     - copy lib\cusparseLt.lib %LIBRARY_LIB%\cusparseLt.lib /Y /V  # [win]
@@ -47,9 +45,9 @@ outputs:
         - {{ compiler('cxx') }}
         - {{ stdlib("c") }}
       host:
-        - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
+        - cuda-version {{ cuda_compiler_version }}
       run:
-        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}  # [cuda_compiler_version != "None"]
+        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}
     test:
       commands:
         - test -f $PREFIX/lib/libcusparseLt.so.{{ soversion }}  # [linux]
@@ -60,7 +58,7 @@ outputs:
       summary: The NVIDIA cuSPARSELt runtime library
       license: LicenseRef-cuSPARSELt-Software-License-Agreement
       license_file: LICENSE
-      description: >-
+      description: |
         This is a runtime package only. Developers should install cusparselt-dev to build with cuSPARSELt.
 
   - name: cusparselt-dev
@@ -99,7 +97,8 @@ outputs:
         - cmake
         - ninja
         - git
-        - libcusparse-dev # test_load_elf needs the cuSPARSE header & libnvrtc.s
+        # test_load_elf needs the cuSPARSE header & libnvrtc.s
+        - libcusparse-dev
         - cuda-nvrtc-dev
         - cuda-driver-dev  # [linux]
 
@@ -108,6 +107,7 @@ about:
   license: LicenseRef-cuSPARSELt-Software-License-Agreement
   license_url: https://docs.nvidia.com/cuda/cusparselt/license.html
   license_file: LICENSE
+  license_family: Other
   summary: "Basic Linear Algebra for Sparse Matrices on NVIDIA GPUs"
   description: |
     NVIDIA cuSPARSELt is a high-performance CUDA library dedicated to general
