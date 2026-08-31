@@ -1,4 +1,4 @@
-{% set version = "0.9.0.3" %}
+{% set version = "0.9.1.1" %}
 {% set soversion = ".".join(version.split(".")[:4]) %}
 {% set somajor = version.split(".")[0] %}
 
@@ -8,11 +8,11 @@ package:
 
 source:
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz"  # [linux and x86_64]
-    sha256: "b3e9f6f366ca7d0701157a0ae7da664ef066b6c3ced92e9f838f387e9bf42b96"  # [linux and x86_64]
+    sha256: "e77c16595ce572fbd5d98c5a4959bb955055b5f8c339f5695430358e177360ff"  # [linux and x86_64]
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz"  # [linux and aarch64 and arm_variant_type == "sbsa"]
-    sha256: "e3a273cbe5ef5293ebe37c5c00446f934ef6af11058498428cbb2de50180bbc9"  # [linux and aarch64 and arm_variant_type == "sbsa"]
+    sha256: "542fcec45ea23b2cc805010e5f270088839af1c88f8c578e3113d6fb452d7564"  # [linux and aarch64 and arm_variant_type == "sbsa"]
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip"  # [win and x86_64]
-    sha256: "3292dc5b2ffeeaf3a9de5eaded690bbcf8115709853b12f88200851ecae8cf1c"  # [win and x86_64]
+    sha256: "2d018fcd0601f1812c38b7e13300c924a97458f2b3326bd6064a33e5bab05b33"  # [win and x86_64]
 
 build:
   number: 0
@@ -120,6 +120,8 @@ about:
   dev_url: https://developer.nvidia.com/cusparselt/downloads
 
 extra:
+  skip-lints:
+    - deprecate_license_url
   recipe-maintainers:
     - conda-forge/cuda
     - kvoronin
