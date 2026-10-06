@@ -1,4 +1,4 @@
-{% set version = "0.9.1.1" %}
+{% set version = "0.10.0.12" %}
 {% set soversion = ".".join(version.split(".")[:4]) %}
 {% set somajor = version.split(".")[0] %}
 
@@ -7,37 +7,37 @@ package:
   version: {{ version }}
 
 source:
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz"  # [linux and x86_64]
-    sha256: "e77c16595ce572fbd5d98c5a4959bb955055b5f8c339f5695430358e177360ff"  # [linux and x86_64]
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz"  # [linux and aarch64 and arm_variant_type == "sbsa"]
-    sha256: "542fcec45ea23b2cc805010e5f270088839af1c88f8c578e3113d6fb452d7564"  # [linux and aarch64 and arm_variant_type == "sbsa"]
-  - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip"  # [win and x86_64]
-    sha256: "2d018fcd0601f1812c38b7e13300c924a97458f2b3326bd6064a33e5bab05b33"  # [win and x86_64]
+  - url: https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz  # [linux and x86_64]
+    sha256: 1b6a6230655b7f41b13029129b9cda9f560ed3c101901622363977d6c1c8824f
+  - url: https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz  # [linux and aarch64 and arm_variant_type == "sbsa"]
+    sha256: a79fa6cddffd2273de4be2c3fa8c8f21d70646a2872231c6b62e20d754530707
+  - url: https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip  # [win and x86_64]
+    sha256: a98c0eac0972231d6e4d18b4b623676b8ee3227fcf1275c993431beb39ca7231
 
 build:
   number: 0
   skip: true  # [osx]
-  script:   # [win]
+  script:  # [win]
     - xcopy include %LIBRARY_INC% /E /I /Y /V  # [win]
     - copy lib\cusparseLt.lib %LIBRARY_LIB%\cusparseLt.lib /Y /V  # [win]
     - copy bin\cusparseLt.dll %LIBRARY_BIN%\cusparseLt.dll /Y /V  # [win]
+
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cuda') }}
     - {{ compiler('cxx') }}
     - {{ stdlib("c") }}
-    - cf-nvidia-tools 1   # [linux]
+    - cf-nvidia-tools 1  # [linux]
 
 outputs:
-
   - name: cusparselt
     build:
       ignore_run_exports:
         - cuda-version
     files:
-      - lib/libcusparseLt.so.*              # [linux]
-      - Library/bin/cusparseLt.dll          # [win]
+      - lib/libcusparseLt.so.*  # [linux]
+      - Library/bin/cusparseLt.dll  # [win]
     requirements:
       build:
         - {{ compiler('c') }}
@@ -67,9 +67,9 @@ outputs:
         # Breaking changes every version until 1.0
         - {{ pin_subpackage("cusparselt", max_pin="x.x.x") }}
     files:
-      - lib/libcusparseLt.so    # [linux]
-      - include/cusparseLt.h    # [linux]
-      - Library/lib/cusparseLt.lib    # [win]
+      - lib/libcusparseLt.so  # [linux]
+      - include/cusparseLt.h  # [linux]
+      - Library/lib/cusparseLt.lib  # [win]
       - Library/include/cusparseLt.h  # [win]
     requirements:
       host:
@@ -78,8 +78,8 @@ outputs:
         - {{ pin_subpackage("cusparselt", exact=True) }}
     test:
       files:
-        - test/test_load_elf.c        # [linux]
-        - test/run_test.sh   # [linux]
+        - test/test_load_elf.c  # [linux]
+        - test/run_test.sh  # [linux]
         - test/run_test.bat  # [win]
       commands:
         - test -f $PREFIX/include/cusparseLt.h  # [linux]
@@ -108,7 +108,7 @@ about:
   license_url: https://docs.nvidia.com/cuda/cusparselt/license.html
   license_file: LICENSE
   license_family: Other
-  summary: "Basic Linear Algebra for Sparse Matrices on NVIDIA GPUs"
+  summary: Basic Linear Algebra for Sparse Matrices on NVIDIA GPUs
   description: |
     NVIDIA cuSPARSELt is a high-performance CUDA library dedicated to general
     matrix-matrix operations in which at least one operand is a structured sparse matrix
