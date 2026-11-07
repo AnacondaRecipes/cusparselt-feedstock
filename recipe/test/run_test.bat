@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 if not exist %LIBRARY_INC%\\cusparseLt.h exit 1
-if not exist %LIBRARY_BIN%\\cusparseLt.dll exit 1
+if not exist %LIBRARY_BIN%\\cusparseLt_%1.dll exit 1
 if not exist %LIBRARY_LIB%\\cusparseLt.lib exit 1
 
 git clone "https://github.com/NVIDIA/CUDALibrarySamples.git" sample_linux
