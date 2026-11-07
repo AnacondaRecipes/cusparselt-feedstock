@@ -13,6 +13,7 @@ if [[ $target_platform == "linux-64" ]]; then
 
     git clone https://github.com/NVIDIA/CUDALibrarySamples.git sample_linux/
     cd sample_linux/cuSPARSELt/matmul
-    error_log=$(nvcc --std=c++14 -I$CUDA_INC_PATH -I$PREFIX/include -L$PREFIX/lib -L$PREFIX/lib/stubs -lcusparse -lcusparseLt -lcuda -lnvrtc matmul_example.cpp -o matmul_example 2>&1)
-    echo $error_log
+    # Anaconda: print the nvcc output before exiting on failure
+    error_log=$(nvcc --std=c++14 -I$CUDA_INC_PATH -I$PREFIX/include -L$PREFIX/lib -L$PREFIX/lib/stubs -lcusparse -lcusparseLt -lcuda -lnvrtc matmul_example.cpp -o matmul_example 2>&1) || { echo "$error_log"; exit 1; }
+    echo "$error_log"
 fi
