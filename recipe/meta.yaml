@@ -1,6 +1,7 @@
-{% set version = "0.9.1.1" %}
+{% set version = "0.10.0.12" %}
 {% set soversion = ".".join(version.split(".")[:4]) %}
 {% set somajor = version.split(".")[0] %}
+{% set windll_major = "13" %}
 
 package:
   name: cusparselt-split
@@ -8,19 +9,20 @@ package:
 
 source:
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-x86_64/libcusparse_lt-linux-x86_64-{{ version }}_cuda13-archive.tar.xz"  # [linux and x86_64]
-    sha256: "e77c16595ce572fbd5d98c5a4959bb955055b5f8c339f5695430358e177360ff"  # [linux and x86_64]
+    sha256: "1b6a6230655b7f41b13029129b9cda9f560ed3c101901622363977d6c1c8824f"  # [linux and x86_64]
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-sbsa/libcusparse_lt-linux-sbsa-{{ version }}_cuda13-archive.tar.xz"  # [linux and aarch64 and arm_variant_type == "sbsa"]
-    sha256: "542fcec45ea23b2cc805010e5f270088839af1c88f8c578e3113d6fb452d7564"  # [linux and aarch64 and arm_variant_type == "sbsa"]
+    sha256: "a79fa6cddffd2273de4be2c3fa8c8f21d70646a2872231c6b62e20d754530707"  # [linux and aarch64 and arm_variant_type == "sbsa"]
   - url: "https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/windows-x86_64/libcusparse_lt-windows-x86_64-{{ version }}_cuda13-archive.zip"  # [win and x86_64]
-    sha256: "2d018fcd0601f1812c38b7e13300c924a97458f2b3326bd6064a33e5bab05b33"  # [win and x86_64]
+    sha256: "a98c0eac0972231d6e4d18b4b623676b8ee3227fcf1275c993431beb39ca7231"  # [win and x86_64]
 
 build:
   number: 0
-  skip: true  # [osx]
-  script:   # [win]
-    - xcopy include %LIBRARY_INC% /E /I /Y /V  # [win]
-    - copy lib\cusparseLt.lib %LIBRARY_LIB%\cusparseLt.lib /Y /V  # [win]
-    - copy bin\cusparseLt.dll %LIBRARY_BIN%\cusparseLt.dll /Y /V  # [win]
+  # Anaconda: skip platforms without a cuSPARSELt redist (osx and win-arm64)
+  # PBP auto graph generation and submission fails otherwise.
+  skip: true  # [osx or (win and not x86_64)]
+  # Anaconda: Windows build steps live in recipe/bld.bat; pass the DLL major version via script_env
+  script_env:
+    - WINDLL_MAJOR={{ windll_major }}
 requirements:
   build:
     - {{ compiler('c') }}
@@ -36,8 +38,8 @@ outputs:
       ignore_run_exports:
         - cuda-version
     files:
-      - lib/libcusparseLt.so.*              # [linux]
-      - Library/bin/cusparseLt.dll          # [win]
+      - lib/libcusparseLt.so.*  # [linux]
+      - Library/bin/cusparseLt_{{ windll_major }}.dll  # [win]
     requirements:
       build:
         - {{ compiler('c') }}
@@ -53,12 +55,12 @@ outputs:
         - test -f $PREFIX/lib/libcusparseLt.so.{{ soversion }}  # [linux]
         - test -L $PREFIX/lib/libcusparseLt.so.{{ somajor }}  # [linux]
         - test ! -f $PREFIX/lib/libcusparseLt_static.a  # [linux]
-        - if not exist %LIBRARY_BIN%\\cusparseLt.dll exit 1  # [win]
+        - if not exist %LIBRARY_BIN%\\cusparseLt_{{ windll_major }}.dll exit 1  # [win]
     about:
       summary: The NVIDIA cuSPARSELt runtime library
       license: LicenseRef-cuSPARSELt-Software-License-Agreement
       license_file: LICENSE
-      description: |
+      description: >-
         This is a runtime package only. Developers should install cusparselt-dev to build with cuSPARSELt.
 
   - name: cusparselt-dev
@@ -67,10 +69,13 @@ outputs:
         # Breaking changes every version until 1.0
         - {{ pin_subpackage("cusparselt", max_pin="x.x.x") }}
     files:
-      - lib/libcusparseLt.so    # [linux]
-      - include/cusparseLt.h    # [linux]
-      - Library/lib/cusparseLt.lib    # [win]
+      - lib/libcusparseLt.so  # [linux]
+      - include/cusparseLt.h  # [linux]
+      # Anaconda: ship cusparseLt_cusparse_stub.h, the cuSPARSE fallback header that cusparseLt.h includes
+      - include/cusparseLt_cusparse_stub.h  # [linux]
+      - Library/lib/cusparseLt.lib  # [win]
       - Library/include/cusparseLt.h  # [win]
+      - Library/include/cusparseLt_cusparse_stub.h  # [win]
     requirements:
       host:
         - {{ pin_subpackage("cusparselt", exact=True) }}
@@ -78,17 +83,21 @@ outputs:
         - {{ pin_subpackage("cusparselt", exact=True) }}
     test:
       files:
-        - test/test_load_elf.c        # [linux]
+        - test/test_load_elf.c  # [linux]
         - test/run_test.sh   # [linux]
         - test/run_test.bat  # [win]
       commands:
         - test -f $PREFIX/include/cusparseLt.h  # [linux]
+        # Anaconda: check the cuSPARSE fallback header is packaged
+        - test -f $PREFIX/include/cusparseLt_cusparse_stub.h  # [linux]
         - test -L $PREFIX/lib/libcusparseLt.so  # [linux]
         - test ! -f $PREFIX/lib/libcusparseLt_static.a  # [linux]
         - bash test/run_test.sh  # [linux]
         - if not exist %LIBRARY_LIB%\\cusparseLt.lib exit 1  # [win]
         - if not exist %LIBRARY_INC%\\cusparseLt.h exit 1  # [win]
-        - test/run_test.bat  # [win]
+        # Anaconda: check the cuSPARSE fallback header is packaged
+        - if not exist %LIBRARY_INC%\\cusparseLt_cusparse_stub.h exit 1  # [win]
+        - test/run_test.bat {{ windll_major }}  # [win]
       requires:
         - {{ compiler("c") }}
         - {{ compiler("cxx") }}
@@ -109,6 +118,7 @@ about:
   license_file: LICENSE
   license_family: Other
   summary: "Basic Linear Algebra for Sparse Matrices on NVIDIA GPUs"
+  # Anaconda: EULA paragraph omitted; post-link.sh prints the license notice
   description: |
     NVIDIA cuSPARSELt is a high-performance CUDA library dedicated to general
     matrix-matrix operations in which at least one operand is a structured sparse matrix
@@ -117,10 +127,11 @@ about:
     epilogue, and matrix characteristics, including memory layout,
     alignment, and data types.
   doc_url: https://docs.nvidia.com/cuda/cusparselt/index.html
-  dev_url: https://developer.nvidia.com/cusparselt/downloads
+  dev_url: https://developer.nvidia.com/cusparselt
 
 extra:
   skip-lints:
+    # Anaconda: license_url is kept above, so silence its deprecation lint
     - deprecate_license_url
   recipe-maintainers:
     - conda-forge/cuda
