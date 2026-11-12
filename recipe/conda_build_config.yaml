@@ -1,9 +1,9 @@
-arm_variant_type:
-  - sbsa
+arm_variant_type:  # [linux and aarch64]
+  - sbsa           # [linux and aarch64]
 
 # As per cuSPARSElt documentation, it supports CUDA 12.9 or newer
 # Also, Nvidia won't provide CUDA 12 redists for cuSPARSElt.
 # As per the configuration on the recipe, cuSPARSElt should support
-# any CUDA version "">=13,<14.0a". Moreover, CF is using CUDA 13.0.
+# any CUDA version "">=13,<14.0a".
 cuda_compiler_version:
   - "13.0"
